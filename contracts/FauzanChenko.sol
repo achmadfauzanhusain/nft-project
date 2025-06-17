@@ -59,9 +59,8 @@ contract FauzanChenko is ERC721, ERC721Enumerable, ERC721Pausable, Ownable {
         _safeMint(msg.sender, tokenId);
     }
 
-    function withDraw(address _address) public onlyOwner {
-        uint256 balance = address(this).balance;
-        payable(_address).transfer(balance);
+    function withDraw() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     // allow list

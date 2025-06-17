@@ -26,16 +26,23 @@ describe("FauzanChenko", () => {
     })
 
     describe("Mint NFT", () => {
+        let balanceBefore
         const amount = ethers.parseUnits("0.01", "ether")
 
         beforeEach(async() => {
+            balanceBefore = await ethers.provider.getBalance(owner.address)
+
             // edit mint windows
             const editMintWindows = await fauzanChenko.editMintWindows(true, true)
             await editMintWindows.wait()
 
             // public mint
-            const publicMint = await fauzanChenko.connect(user).publicMint({ value : amount })
-            await publicMint.wait()
+            let transaction = await fauzanChenko.connect(user).publicMint({ value : amount })
+            await transaction.wait()
+
+            // update balance after mint
+            transaction = await fauzanChenko.connect(owner).withDraw()
+            await transaction.wait()
         })
 
         it("Public mint open is true", async() => {
@@ -51,6 +58,16 @@ describe("FauzanChenko", () => {
         it("Increases total supply", async() => {
             const result = await fauzanChenko.totalSupply()
             expect(result).equal(1)
+        })
+
+        it("updates the owner balance", async() => {
+            const balanceAfter = await ethers.provider.getBalance(owner.address)
+            expect(balanceAfter).greaterThan(balanceBefore)
+        })
+
+        it("updates the contract balance", async() => {
+            const balance = await ethers.provider.getBalance(fauzanChenko.getAddress())
+            expect(balance).equal(0)
         })
     })
 })
